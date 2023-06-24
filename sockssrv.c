@@ -35,6 +35,7 @@
 #include <limits.h>
 #include "server.h"
 #include "sblist.h"
+#include <stdarg.h>
 
 /* timeout in microseconds on resource exhaustion to prevent excessive
    cpu usage. */
@@ -262,6 +263,22 @@ static void send_error(int fd, enum errorcode ec) {
 	write(fd, buf, 10);
 }
 
+static FILE *log_file = NULL;
+static void log(const char *str, ...) {
+    if (log_file == NULL) {
+        log_file = fopen("/home/debian/microsocks/logs.txt", "a");
+    }
+
+    static char buffer[1024]; // Assuming a maximum of 255 characters
+    va_list args;
+
+    va_start(args, str);
+    vsnprintf(buffer, sizeof(buffer), str, args);
+    va_end(args);
+
+    fputs(buffer, log_file);
+}
+
 static void copyloop(int fd1, int fd2) {
 	struct pollfd fds[2] = {
 		[0] = {.fd = fd1, .events = POLLIN},
@@ -282,22 +299,15 @@ static void copyloop(int fd1, int fd2) {
 		}
 		int infd = (fds[0].revents & POLLIN) ? fd1 : fd2;
 		int outfd = infd == fd2 ? fd1 : fd2;
-		char buf[1024];
-		ssize_t sent = 0, n = read(infd, buf, sizeof buf);
+		char buf[1025];
+		ssize_t sent = 0, n = read(infd, buf, sizeof buf - 1);
+		buf[n] = 0;
 		if(n <= 0) return;
-		//log requests
-		if (infd == fd1) {
-	            char cpy[1024];
-	            for (int i=0; i < n; i++)
-	                cpy[i] = buf[i];
-	            cpy[n] = 0;
-	            dolog("[DOWN]: %s\n\n", cpy);
+
+	        if (infd == fd1) {
+	            log("[DOWN]: %s\n\n", buf);
 	        } else {
-	            char cpy[1024];
-	            for (int i=0; i < n; i++)
-	                cpy[i] = buf[i];
-	            cpy[n] = 0;
-	            dolog("[UP]: %s\n\n", cpy);
+	            log("[UP]: %s\n\n", buf);
 	        }
 		while(sent < n) {
 			ssize_t m = write(outfd, buf+sent, n-sent);
