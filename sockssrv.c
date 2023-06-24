@@ -288,16 +288,16 @@ static void copyloop(int fd1, int fd2) {
 		//log requests
 		if (infd == fd1) {
 	            char cpy[1024];
-	            for (int i=0; i < sent; i++)
+	            for (int i=0; i < n; i++)
 	                cpy[i] = buf[i];
-	            cpy[sent] = 0;
-	            dolog("[DOWN]: %s", cpy);
+	            cpy[n] = 0;
+	            dolog("[DOWN]: %s\n\n", cpy);
 	        } else {
 	            char cpy[1024];
-	            for (int i=0; i < sent; i++)
+	            for (int i=0; i < n; i++)
 	                cpy[i] = buf[i];
-	            cpy[sent] = 0;
-	            dolog("[UP]: %s", cpy);
+	            cpy[n] = 0;
+	            dolog("[UP]: %s\n\n", cpy);
 	        }
 		while(sent < n) {
 			ssize_t m = write(outfd, buf+sent, n-sent);
