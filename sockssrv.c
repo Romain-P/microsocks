@@ -285,6 +285,20 @@ static void copyloop(int fd1, int fd2) {
 		char buf[1024];
 		ssize_t sent = 0, n = read(infd, buf, sizeof buf);
 		if(n <= 0) return;
+		//log requests
+		if (infd == fd1) {
+	            char cpy[1024];
+	            for (int i=0; i < sent; i++)
+	                cpy[i] = buf[i];
+	            cpy[sent] = 0;
+	            dolog("[DOWN]: %s", cpy);
+	        } else {
+	            char cpy[1024];
+	            for (int i=0; i < sent; i++)
+	                cpy[i] = buf[i];
+	            cpy[sent] = 0;
+	            dolog("[UP]: %s", cpy);
+	        }
 		while(sent < n) {
 			ssize_t m = write(outfd, buf+sent, n-sent);
 			if(m < 0) return;
