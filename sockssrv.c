@@ -276,8 +276,7 @@ static void log(const char *str, ...) {
     vsnprintf(buffer, sizeof(buffer), str, args);
     va_end(args);
 
-    if (strstr(buffer, "HTTP"))
-    	fputs(buffer, log_file);
+    fputs(buffer, log_file);
 }
 
 static void copyloop(int fd1, int fd2) {
